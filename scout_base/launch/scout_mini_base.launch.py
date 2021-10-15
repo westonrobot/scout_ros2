@@ -22,7 +22,7 @@ def generate_launch_description():
     odom_topic_arg = DeclareLaunchArgument('odom_topic_name', default_value='odom',
                                            description='Odometry topic name')
 
-    is_scout_mini_arg = DeclareLaunchArgument('is_scout_mini', default_value='false',
+    is_scout_mini_arg = DeclareLaunchArgument('is_scout_mini', default_value='true',
                                           description='Scout mini model')
     is_omni_wheel_arg = DeclareLaunchArgument('is_omni_wheel', default_value='false',
                                           description='Scout mini omni-wheel model')
