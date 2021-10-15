@@ -1,0 +1,95 @@
+## Build and test as catkin package
+# kinetic-catkin-build:
+#   stage: build
+#   image: rduweston/ubuntu-ci:kinetic
+#   before_script:
+#     - apt-get update && apt-get -y install ros-$ROS_DISTRO-teleop-twist-keyboard
+#   script:
+#     - mkdir -p /catkin_ws/src && cd /catkin_ws/src && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace"
+#     - cd /catkin_ws/src && git clone -b master --recursive https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/westonrobot/public/ugv_sdk.git
+#     - cp -r /builds/$CI_PROJECT_PATH /catkin_ws/src/scout_base
+#     - cd /catkin_ws && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make"
+
+# kinetic-catkin-isolated-build:
+#   stage: build
+#   image: rduweston/ubuntu-ci:kinetic
+#   before_script:
+#     - apt-get update && apt-get -y install ros-$ROS_DISTRO-teleop-twist-keyboard
+#   script:
+#     - mkdir -p /catkin_ws/src && cd /catkin_ws/src && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace"
+#     - cd /catkin_ws/src && git clone -b master --recursive https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/westonrobot/public/ugv_sdk.git
+#     - cp -r /builds/$CI_PROJECT_PATH /catkin_ws/src/scout_base
+#     - cd /catkin_ws && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make_isolated --install"
+
+melodic-catkin-build:
+  stage: build
+  only:    
+    - melodic
+  image: rduweston/ubuntu-ci:melodic
+  before_script:
+    - apt-get update && apt-get -y install curl ros-$ROS_DISTRO-teleop-twist-keyboard
+    - echo "deb https://westonrobot.jfrog.io/artifactory/wrtoolbox-release bionic next" | tee /etc/apt/sources.list.d/weston-robot.list
+    - curl -sSL 'https://westonrobot.jfrog.io/artifactory/api/security/keypair/wr-deb/public' | apt-key add -
+    - apt-get update && apt-get -y install wrp_sdk
+  script:
+    - mkdir -p /catkin_ws/src && cd /catkin_ws/src && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace"
+    - cp -r /builds/$CI_PROJECT_PATH /catkin_ws/src/wr_mobilerobot_ros
+    - cd /catkin_ws && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make"
+
+# melodic-catkin-isolated-build:
+#   stage: build
+#   image: rduweston/ubuntu-ci:melodic
+#   before_script:
+#     - apt-get update && apt-get -y install curl ros-$ROS_DISTRO-teleop-twist-keyboard ros-$ROS_DISTRO-std-msgs
+#     - echo "deb https://westonrobot.jfrog.io/artifactory/wrtoolbox-release bionic next" | tee /etc/apt/sources.list.d/weston-robot.list
+#     - curl -sSL 'https://westonrobot.jfrog.io/artifactory/api/security/keypair/wr-deb/public' | apt-key add -
+#     - apt-get update && apt-get -y install wrp_sdk
+#   script:
+#     - mkdir -p /catkin_ws/src && cd /catkin_ws/src && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace"
+#     - cp -r /builds/$CI_PROJECT_PATH /catkin_ws/src/wr_mobilerobot_ros
+#     - cd /catkin_ws && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make_isolated --install"
+
+noetic-catkin-build:
+  stage: build
+  image: rduweston/ubuntu-ci:noetic
+  only:    
+    - noetic
+  before_script:
+    - apt-get update && apt-get -y install curl ros-$ROS_DISTRO-teleop-twist-keyboard
+    - echo "deb https://westonrobot.jfrog.io/artifactory/wrtoolbox-release focal next" | tee /etc/apt/sources.list.d/weston-robot.list
+    - curl -sSL 'https://westonrobot.jfrog.io/artifactory/api/security/keypair/wr-deb/public' | apt-key add -
+    - apt-get update && apt-get -y install wrp_sdk
+  script:
+    - mkdir -p /catkin_ws/src && cd /catkin_ws/src && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace"
+    - cp -r /builds/$CI_PROJECT_PATH /catkin_ws/src/scout_base
+    - cd /catkin_ws && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make"
+
+# noetic-catkin-isolated-build:
+#   stage: build
+#   image: rduweston/ubuntu-ci:noetic
+#   before_script:
+#     - apt update && apt -y install ros-$ROS_DISTRO-teleop-twist-keyboard
+#   script:
+#     - mkdir -p /catkin_ws/src && cd /catkin_ws/src && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace"
+#     - cd /catkin_ws/src && git clone -b master --recursive https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/westonrobot/public/ugv_sdk.git
+#     - cp -r /builds/$CI_PROJECT_PATH /catkin_ws/src/scout_base
+#     - cd /catkin_ws && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make_isolated --install"
+
+## Build and test as colcon package
+foxy-colcon-build:
+  stage: build
+  image: rduweston/ubuntu-ci:foxy
+  only:    
+    - foxy
+  before_script:
+    - apt-get update && apt-get -y install curl ros-$ROS_DISTRO-xacro
+    - echo "deb https://westonrobot.jfrog.io/artifactory/wrtoolbox-release focal next" | tee /etc/apt/sources.list.d/weston-robot.list
+    - curl -sSL 'https://westonrobot.jfrog.io/artifactory/api/security/keypair/wr-deb/public' | apt-key add -
+    - apt-get update && apt-get -y install wrp_sdk
+  script:
+    - mkdir -p /ros2_ws/src 
+    # clone/copy source to colcon workspace
+    - cp -r /builds/$CI_PROJECT_PATH /ros2_ws/src
+    # invoke colcon build
+    - cd /ros2_ws && /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
+
