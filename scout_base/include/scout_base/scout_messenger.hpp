@@ -41,9 +41,28 @@ class ScoutMessenger {
     sim_control_rate_ = loop_rate;
   }
 
+  void SetupSubscription() {
+    // odometry publisher
+    odom_pub_ =
+        node_->create_publisher<nav_msgs::msg::Odometry>(odom_topic_name_, 50);
+    status_pub_ = node_->create_publisher<scout_msgs::msg::ScoutStatus>(
+        "/scout_status", 10);
+
+    // cmd subscriber
+    motion_cmd_sub_ = node_->create_subscription<geometry_msgs::msg::Twist>(
+        "/cmd_vel", 5,
+        std::bind(&ScoutMessenger::TwistCmdCallback, this,
+                  std::placeholders::_1));
+    light_cmd_sub_ = node_->create_subscription<scout_msgs::msg::ScoutLightCmd>(
+        "/light_control", 5,
+        std::bind(&ScoutMessenger::LightCmdCallback, this,
+                  std::placeholders::_1));
+
+    tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
+  }
+
   void PublishStateToROS() {
-    current_time_ = node_->now();
-    double dt = (current_time_ - last_time_).seconds();
+    current_time_ = node_->get_clock()->now();
 
     static bool init_run = true;
     if (init_run) {
@@ -51,6 +70,7 @@ class ScoutMessenger {
       init_run = false;
       return;
     }
+    double dt = (current_time_ - last_time_).seconds();
 
     auto state = scout_->GetRobotState();
 
@@ -139,24 +159,6 @@ class ScoutMessenger {
 
   rclcpp::Time last_time_;
   rclcpp::Time current_time_;
-
-  void SetupSubscription() {
-    // odometry publisher
-    odom_pub_ =
-        node_->create_publisher<nav_msgs::msg::Odometry>(odom_topic_name_, 50);
-    status_pub_ = node_->create_publisher<scout_msgs::msg::ScoutStatus>(
-        "/scout_status", 10);
-
-    // cmd subscriber
-    motion_cmd_sub_ = node_->create_subscription<geometry_msgs::msg::Twist>(
-        "/cmd_vel", 5,
-        std::bind(&ScoutMessenger::TwistCmdCallback, this,
-                  std::placeholders::_1));
-    light_cmd_sub_ = node_->create_subscription<scout_msgs::msg::ScoutLightCmd>(
-        "/light_control", 5,
-        std::bind(&ScoutMessenger::LightCmdCallback, this,
-                  std::placeholders::_1));
-  }
 
   void TwistCmdCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
     if (!simulated_robot_) {

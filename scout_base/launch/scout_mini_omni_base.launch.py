@@ -36,6 +36,7 @@ def generate_launch_description():
         package='scout_base',
         executable='scout_base_node',
         output='screen',
+        # prefix=['xterm -e gdb -ex run --args'],
         emulate_tty=True,
         parameters=[{
                 'use_sim_time': launch.substitutions.LaunchConfiguration('use_sim_time'),
