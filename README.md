@@ -44,3 +44,12 @@ This repository contains minimal packages to control the scout robot using ROS.
     ```
     $ ros2 run teleop_twist_keyboard teleop_twist_keyboard
     ```
+    
+
+### QoS
+You have to change the QoS to display properly the model
+
+    Depth: 5
+    History Policy: Keep Last
+    Reliability Policy: Best Effort
+    Durability Policy: Transient Local
