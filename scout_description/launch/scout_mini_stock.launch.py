@@ -8,8 +8,8 @@ from launch import LaunchDescription
 
 
 def generate_launch_description():
-    pkg_share = launch_ros.substitutions.FindPackageShare(package='scout_mini_description').find('scout_mini_description')
-    default_model_path = os.path.join(pkg_share, 'src/scout_mini_description/scout_mini.urdf')
+    pkg_share = launch_ros.substitutions.FindPackageShare(package='scout_description').find('scout_description')
+    default_model_path = os.path.join(pkg_share, 'src/scout_description/urdf/scout_mini.urdf')
 
     robot_state_publisher_node = launch_ros.actions.Node(
         package='robot_state_publisher',
