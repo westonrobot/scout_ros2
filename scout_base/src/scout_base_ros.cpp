@@ -31,18 +31,17 @@ ScoutBaseRos::ScoutBaseRos(std::string node_name)
 }
 
 void ScoutBaseRos::LoadParameters() {
-  this->get_parameter_or<std::string>("port_name", port_name_, "can0");
+  this->get_parameter<std::string>("port_name", port_name_);
 
-  this->get_parameter_or<std::string>("odom_frame", odom_frame_, "odom");
-  this->get_parameter_or<std::string>("base_frame", base_frame_, "base_link");
-  this->get_parameter_or<std::string>("odom_topic_name", odom_topic_name_,
-                                      "odom");
+  this->get_parameter<std::string>("odom_frame", odom_frame_);
+  this->get_parameter<std::string>("base_frame", base_frame_);
+  this->get_parameter<std::string>("odom_topic_name", odom_topic_name_);
 
-  this->get_parameter_or<bool>("is_scout_mini", is_scout_mini_, false);
-  this->get_parameter_or<bool>("is_omni_wheel", is_omni_wheel_, false);
+  this->get_parameter<bool>("is_scout_mini", is_scout_mini_);
+  this->get_parameter<bool>("is_omni_wheel", is_omni_wheel_);
 
-  this->get_parameter_or<bool>("simulated_robot", simulated_robot_, false);
-  this->get_parameter_or<int>("control_rate", sim_control_rate_, 50);
+  this->get_parameter<bool>("simulated_robot", simulated_robot_);
+  this->get_parameter<int>("control_rate", sim_control_rate_);
 
   std::cout << "Loading parameters: " << std::endl;
   std::cout << "- port name: " << port_name_ << std::endl;
