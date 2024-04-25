@@ -6,6 +6,8 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.substitutions import LaunchConfiguration, Command
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
 
 
@@ -26,18 +28,27 @@ def generate_launch_description():
                                           description='Scout mini model')
     is_omni_wheel_arg = DeclareLaunchArgument('is_omni_wheel', default_value='false',
                                           description='Scout mini omni-wheel model')
+    auto_reconnect_arg = DeclareLaunchArgument('auto_reconnect', default_value='true', 
+                                          description='Attempts to re-establish CAN command mode')
 
     simulated_robot_arg = DeclareLaunchArgument('simulated_robot', default_value='false',
                                                    description='Whether running with simulator')
     sim_control_rate_arg = DeclareLaunchArgument('control_rate', default_value='50',
                                                  description='Simulation control loop update rate')
     
+    config = PathJoinSubstitution([
+        FindPackageShare('scout_base'),
+        'config',
+        'scout_base_config.yaml'
+    ])
+    
     scout_base_node = launch_ros.actions.Node(
         package='scout_base',
         executable='scout_base_node',
         output='screen',
         emulate_tty=True,
-        parameters=[{
+        parameters=[
+            config,{
                 'use_sim_time': launch.substitutions.LaunchConfiguration('use_sim_time'),
                 'port_name': launch.substitutions.LaunchConfiguration('port_name'),                
                 'odom_frame': launch.substitutions.LaunchConfiguration('odom_frame'),
@@ -57,6 +68,7 @@ def generate_launch_description():
         odom_topic_arg,
         is_scout_mini_arg,
         is_omni_wheel_arg,
+        auto_reconnect_arg,
         simulated_robot_arg,
         sim_control_rate_arg,
         scout_base_node

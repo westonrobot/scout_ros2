@@ -23,6 +23,7 @@ ScoutBaseRos::ScoutBaseRos(std::string node_name)
 
   this->declare_parameter("is_scout_mini", false);
   this->declare_parameter("is_omni_wheel", false);
+  this->declare_parameter("auto_reconnect", true);
 
   this->declare_parameter("simulated_robot", false);
   this->declare_parameter("control_rate", 50);
@@ -39,6 +40,7 @@ void ScoutBaseRos::LoadParameters() {
 
   this->get_parameter<bool>("is_scout_mini", is_scout_mini_);
   this->get_parameter<bool>("is_omni_wheel", is_omni_wheel_);
+  this->get_parameter<bool>("auto_reconnect", auto_reconnect_);
 
   this->get_parameter<bool>("simulated_robot", simulated_robot_);
   this->get_parameter<int>("control_rate", sim_control_rate_);
@@ -54,6 +56,8 @@ void ScoutBaseRos::LoadParameters() {
                      "- is scout mini: " << std::boolalpha << is_scout_mini_);
   RCLCPP_INFO_STREAM(this->get_logger(),
                      "- is omni wheel: " << std::boolalpha << is_omni_wheel_);
+  RCLCPP_INFO_STREAM(this->get_logger(),
+                     "- auto reconnect: " << std::boolalpha << auto_reconnect_);
 
   RCLCPP_INFO_STREAM(
       this->get_logger(),
@@ -156,10 +160,15 @@ void ScoutBaseRos::Run() {
 
     // publish robot state at 50Hz while listening to twist commands
     messenger->SetupSubscription();
+    AgxControlMode robot_control;
     keep_running_ = true;
     rclcpp::Rate rate(50);
     while (keep_running_) {
       messenger->PublishStateToROS();
+      robot_control = robot_->GetRobotState().system_state.control_mode;
+      if (auto_reconnect_ && robot_control == CONTROL_MODE_STANDBY) {
+        robot_->EnableCommandedMode();
+      }
       rclcpp::spin_some(shared_from_this());
       rate.sleep();
     }
