@@ -15,101 +15,109 @@
 namespace westonrobot {
 ScoutBaseRos::ScoutBaseRos(std::string node_name)
     : rclcpp::Node(node_name), keep_running_(false) {
-  this->declare_parameter("port_name");
+  this->declare_parameter("port_name", "can0");
 
-  this->declare_parameter("odom_frame");
-  this->declare_parameter("base_frame");
-  this->declare_parameter("odom_topic_name");
+  this->declare_parameter("odom_frame", "odom");
+  this->declare_parameter("base_frame", "base_link");
+  this->declare_parameter("odom_topic_name", "odom");
 
-  this->declare_parameter("is_scout_mini");
-  this->declare_parameter("is_omni_wheel");
+  this->declare_parameter("is_scout_mini", false);
+  this->declare_parameter("is_omni_wheel", false);
+  this->declare_parameter("auto_reconnect", true);
 
-  this->declare_parameter("simulated_robot");
-  this->declare_parameter("control_rate");
+  this->declare_parameter("simulated_robot", false);
+  this->declare_parameter("control_rate", 50);
 
   LoadParameters();
 }
 
 void ScoutBaseRos::LoadParameters() {
-  this->get_parameter_or<std::string>("port_name", port_name_, "can0");
+  this->get_parameter<std::string>("port_name", port_name_);
 
-  this->get_parameter_or<std::string>("odom_frame", odom_frame_, "odom");
-  this->get_parameter_or<std::string>("base_frame", base_frame_, "base_link");
-  this->get_parameter_or<std::string>("odom_topic_name", odom_topic_name_,
-                                      "odom");
+  this->get_parameter<std::string>("odom_frame", odom_frame_);
+  this->get_parameter<std::string>("base_frame", base_frame_);
+  this->get_parameter<std::string>("odom_topic_name", odom_topic_name_);
 
-  this->get_parameter_or<bool>("is_scout_mini", is_scout_mini_, false);
-  this->get_parameter_or<bool>("is_omni_wheel", is_omni_wheel_, false);
+  this->get_parameter<bool>("is_scout_mini", is_scout_mini_);
+  this->get_parameter<bool>("is_omni_wheel", is_omni_wheel_);
+  this->get_parameter<bool>("auto_reconnect", auto_reconnect_);
 
-  this->get_parameter_or<bool>("simulated_robot", simulated_robot_, false);
-  this->get_parameter_or<int>("control_rate", sim_control_rate_, 50);
+  this->get_parameter<bool>("simulated_robot", simulated_robot_);
+  this->get_parameter<int>("control_rate", sim_control_rate_);
 
-  std::cout << "Loading parameters: " << std::endl;
-  std::cout << "- port name: " << port_name_ << std::endl;
-  std::cout << "- odom frame name: " << odom_frame_ << std::endl;
-  std::cout << "- base frame name: " << base_frame_ << std::endl;
-  std::cout << "- odom topic name: " << odom_topic_name_ << std::endl;
+  RCLCPP_INFO_STREAM(this->get_logger(), "Loading parameters: ");
+  RCLCPP_INFO_STREAM(this->get_logger(), "- port name: " << port_name_);
+  RCLCPP_INFO_STREAM(this->get_logger(), "- odom frame name: " << odom_frame_);
+  RCLCPP_INFO_STREAM(this->get_logger(), "- base frame name: " << base_frame_);
+  RCLCPP_INFO_STREAM(this->get_logger(),
+                     "- odom topic name: " << odom_topic_name_);
 
-  std::cout << "- is scout mini: " << std::boolalpha << is_scout_mini_
-            << std::endl;
-  std::cout << "- is omni wheel: " << std::boolalpha << is_omni_wheel_
-            << std::endl;
+  RCLCPP_INFO_STREAM(this->get_logger(),
+                     "- is scout mini: " << std::boolalpha << is_scout_mini_);
+  RCLCPP_INFO_STREAM(this->get_logger(),
+                     "- is omni wheel: " << std::boolalpha << is_omni_wheel_);
+  RCLCPP_INFO_STREAM(this->get_logger(),
+                     "- auto reconnect: " << std::boolalpha << auto_reconnect_);
 
-  std::cout << "- simulated robot: " << std::boolalpha << simulated_robot_
-            << std::endl;
-  std::cout << "- sim control rate: " << sim_control_rate_ << std::endl;
-  std::cout << "----------------------------" << std::endl;
+  RCLCPP_INFO_STREAM(
+      this->get_logger(),
+      "- simulated robot: " << std::boolalpha << simulated_robot_);
+  RCLCPP_INFO_STREAM(this->get_logger(),
+                     "- sim control rate: " << sim_control_rate_);
+  RCLCPP_INFO_STREAM(this->get_logger(), "----------------------------");
 }
 
 bool ScoutBaseRos::Initialize() {
   if (is_scout_mini_) {
-    std::cout << "Robot base: Scout Mini" << std::endl;
+    RCLCPP_INFO_STREAM(this->get_logger(), "Robot base: Scout Mini");
   } else {
-    std::cout << "Robot base: Scout" << std::endl;
+    RCLCPP_INFO_STREAM(this->get_logger(), "Robot base: Scout");
   }
 
   ProtocolDetector detector;
   if (detector.Connect(port_name_)) {
     auto proto = detector.DetectProtocolVersion(5);
     if (proto == ProtocolVersion::AGX_V1) {
-      std::cout << "Detected protocol: AGX_V1" << std::endl;
+      RCLCPP_INFO_STREAM(this->get_logger(), "Detected protocol: AGX_V1");
       if (!is_omni_wheel_) {
         is_omni_ = false;
         robot_ = std::make_shared<ScoutRobot>(ProtocolVersion::AGX_V1,
                                               is_scout_mini_);
         if (is_scout_mini_) {
-          std::cout << "Creating interface for Scout Mini with AGX_V1 Protocol"
-                    << std::endl;
+          RCLCPP_INFO_STREAM(
+              this->get_logger(),
+              "Creating interface for Scout Mini with AGX_V1 Protocol");
         } else {
-          std::cout << "Creating interface for Scout with AGX_V1 Protocol"
-                    << std::endl;
+          RCLCPP_INFO_STREAM(
+              this->get_logger(),
+              "Creating interface for Scout with AGX_V1 Protocol");
         }
       } else {
         is_omni_ = true;
         omni_robot_ = std::unique_ptr<ScoutMiniOmniRobot>(
             new ScoutMiniOmniRobot(ProtocolVersion::AGX_V1));
-        std::cout
-            << "Creating interface for Scout Mini Omni with AGX_V1 Protocol"
-            << std::endl;
+        RCLCPP_INFO_STREAM(
+            this->get_logger(),
+            "Creating interface for Scout Mini Omni with AGX_V1 Protocol");
       }
     } else if (proto == ProtocolVersion::AGX_V2) {
-      std::cout << "Detected protocol: AGX_V2" << std::endl;
+      RCLCPP_INFO_STREAM(this->get_logger(), "Detected protocol: AGX_V2");
       if (!is_omni_wheel_) {
         is_omni_ = false;
         robot_ = std::make_shared<ScoutRobot>(ProtocolVersion::AGX_V2,
                                               is_scout_mini_);
-        std::cout << "Creating interface for Scout with AGX_V2 Protocol"
-                  << std::endl;
+        RCLCPP_INFO_STREAM(this->get_logger(),
+                           "Creating interface for Scout with AGX_V2 Protocol");
       } else {
         is_omni_ = true;
         omni_robot_ = std::unique_ptr<ScoutMiniOmniRobot>(
             new ScoutMiniOmniRobot(ProtocolVersion::AGX_V2));
-        std::cout
-            << "Creating interface for Scout Mini Omni with AGX_V2 Protocol"
-            << std::endl;
+        RCLCPP_INFO_STREAM(
+            this->get_logger(),
+            "Creating interface for Scout Mini Omni with AGX_V2 Protocol");
       }
     } else {
-      std::cout << "Detected protocol: UNKONWN" << std::endl;
+      RCLCPP_INFO_STREAM(this->get_logger(), "Detected protocol: UNKONWN");
       return false;
     }
   } else {
@@ -137,23 +145,30 @@ void ScoutBaseRos::Run() {
     if (port_name_.find("can") != std::string::npos) {
       if (robot_->Connect(port_name_)) {
         robot_->EnableCommandedMode();
-        std::cout << "Using CAN bus to talk with the robot" << std::endl;
+        RCLCPP_INFO_STREAM(this->get_logger(),
+                           "Using CAN bus to talk with the robot");
       } else {
-        std::cout << "Failed to connect to the robot CAN bus" << std::endl;
+        RCLCPP_INFO_STREAM(this->get_logger(),
+                           "Failed to connect to the robot CAN bus");
         return;
       }
     } else {
-      std::cout << "Please check the specified port name is a CAN port"
-                << std::endl;
+      RCLCPP_INFO_STREAM(this->get_logger(),
+                         "Please check the specified port name is a CAN port");
       return;
     }
 
     // publish robot state at 50Hz while listening to twist commands
     messenger->SetupSubscription();
+    AgxControlMode robot_control;
     keep_running_ = true;
     rclcpp::Rate rate(50);
     while (keep_running_) {
       messenger->PublishStateToROS();
+      robot_control = robot_->GetRobotState().system_state.control_mode;
+      if (auto_reconnect_ && robot_control == CONTROL_MODE_STANDBY) {
+        robot_->EnableCommandedMode();
+      }
       rclcpp::spin_some(shared_from_this());
       rate.sleep();
     }
@@ -171,14 +186,16 @@ void ScoutBaseRos::Run() {
     if (port_name_.find("can") != std::string::npos) {
       if (omni_robot_->Connect(port_name_)) {
         omni_robot_->EnableCommandedMode();
-        std::cout << "Using CAN bus to talk with the robot" << std::endl;
+        RCLCPP_INFO_STREAM(this->get_logger(),
+                           "Using CAN bus to talk with the robot");
       } else {
-        std::cout << "Failed to connect to the robot CAN bus" << std::endl;
+        RCLCPP_INFO_STREAM(this->get_logger(),
+                           "Failed to connect to the robot CAN bus");
         return;
       }
     } else {
-      std::cout << "Please check the specified port name is a CAN port"
-                << std::endl;
+      RCLCPP_INFO_STREAM(this->get_logger(),
+                         "Please check the specified port name is a CAN port");
       return;
     }
 

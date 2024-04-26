@@ -26,6 +26,8 @@ def generate_launch_description():
                                           description='Scout mini model')
     is_omni_wheel_arg = DeclareLaunchArgument('is_omni_wheel', default_value='false',
                                           description='Scout mini omni-wheel model')
+    auto_reconnect_arg = DeclareLaunchArgument('auto_reconnect', default_value='true', 
+                                          description='Attempts to re-establish CAN command mode')
 
     simulated_robot_arg = DeclareLaunchArgument('simulated_robot', default_value='false',
                                                    description='Whether running with simulator')
@@ -45,6 +47,7 @@ def generate_launch_description():
                 'odom_topic_name': launch.substitutions.LaunchConfiguration('odom_topic_name'),
                 'is_scout_mini': launch.substitutions.LaunchConfiguration('is_scout_mini'),
                 'is_omni_wheel': launch.substitutions.LaunchConfiguration('is_omni_wheel'),
+                'auto_reconnect': launch.substitutions.LaunchConfiguration('auto_reconnect'),
                 'simulated_robot': launch.substitutions.LaunchConfiguration('simulated_robot'),
                 'control_rate': launch.substitutions.LaunchConfiguration('control_rate'),
         }])
@@ -57,6 +60,7 @@ def generate_launch_description():
         odom_topic_arg,
         is_scout_mini_arg,
         is_omni_wheel_arg,
+        auto_reconnect_arg,
         simulated_robot_arg,
         sim_control_rate_arg,
         scout_base_node

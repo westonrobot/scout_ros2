@@ -34,6 +34,7 @@ class ScoutBaseRos : public rclcpp::Node {
 
   bool is_scout_mini_ = false;
   bool is_omni_wheel_ = false;
+  bool auto_reconnect_;
 
   bool simulated_robot_ = false;
   int sim_control_rate_ = 50;
