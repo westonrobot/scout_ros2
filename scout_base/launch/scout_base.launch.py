@@ -36,19 +36,12 @@ def generate_launch_description():
     sim_control_rate_arg = DeclareLaunchArgument('control_rate', default_value='50',
                                                  description='Simulation control loop update rate')
     
-    config = PathJoinSubstitution([
-        FindPackageShare('scout_base'),
-        'config',
-        'scout_base_config.yaml'
-    ])
-    
     scout_base_node = launch_ros.actions.Node(
         package='scout_base',
         executable='scout_base_node',
         output='screen',
         emulate_tty=True,
-        parameters=[
-            config,{
+        parameters=[{
                 'use_sim_time': launch.substitutions.LaunchConfiguration('use_sim_time'),
                 'port_name': launch.substitutions.LaunchConfiguration('port_name'),                
                 'odom_frame': launch.substitutions.LaunchConfiguration('odom_frame'),
@@ -56,6 +49,7 @@ def generate_launch_description():
                 'odom_topic_name': launch.substitutions.LaunchConfiguration('odom_topic_name'),
                 'is_scout_mini': launch.substitutions.LaunchConfiguration('is_scout_mini'),
                 'is_omni_wheel': launch.substitutions.LaunchConfiguration('is_omni_wheel'),
+                'auto_reconnect': launch.substitutions.LaunchConfiguration('auto_reconnect'),
                 'simulated_robot': launch.substitutions.LaunchConfiguration('simulated_robot'),
                 'control_rate': launch.substitutions.LaunchConfiguration('control_rate'),
         }])

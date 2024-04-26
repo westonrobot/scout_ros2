@@ -1,5 +1,0 @@
-/scout:
-  ros__parameters:
-    # true == Always attempts to establish CAN command control
-    # false == Restarting of node is required to establish CAN command control 
-    auto_reconnect: true
